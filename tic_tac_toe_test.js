@@ -1,5 +1,11 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
+const fs = require('fs');
+const path = require('path');
+
+// Create a truly unique user-data-dir each time
+const profileDir = path.join(__dirname, 'chrome-profile-' + Date.now());
+fs.mkdirSync(profileDir, { recursive: true });
 
 const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
 
@@ -10,6 +16,7 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
   options.addArguments('--headless=new'); // Use modern headless mode
   options.addArguments('--no-sandbox');
   options.addArguments('--disable-dev-shm-usage');
+  options.addArguments(`--user-data-dir=${profileDir}`); // Use the new unique directory
 
   let driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
 
@@ -23,5 +30,9 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
     process.exit(1);
   } finally {
     await driver.quit();
+    // Clean up the profile directory
+    if (fs.existsSync(profileDir)) {
+      fs.rmSync(profileDir, { recursive: true, force: true });
+    }
   }
 })();
