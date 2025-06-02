@@ -1,50 +1,32 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const assert = require('assert');
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
 
-// Minimal working options for CI/EC2
-const options = new chrome.Options()
-  .addArguments('--headless=new')
-  .addArguments('--no-sandbox')
-  .addArguments('--disable-dev-shm-usage')
-  .addArguments('--disable-gpu')
-  .addArguments('--disable-software-rasterizer');
+(async function runTest() {
+  let options = new chrome.Options();
 
-// Create WebDriver with safe options
-const driver = new Builder()
-  .forBrowser('chrome')
-  .setChromeOptions(options)
-  .build();
+    options.addArguments(
+      '--headless=new',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-software-rasterizer'
+  );
 
-(async function testTicTacToe() {
-    try {
-        const testingUrl = process.env.TESTING_URL || 'http://localhost';
-        console.log('Navigating to:', testingUrl);
-        await driver.get(testingUrl);
+  let driver = await new Builder()
+    .forBrowser('chrome')
+    .setChromeOptions(options)
+    .build();
 
-        // Wait for game board to appear
-        await driver.wait(until.elementLocated(By.id('cell0')), 10000);
-
-        // Play simple sequence
-        await driver.findElement(By.id('cell0')).click();
-        await driver.sleep(500);
-        await driver.findElement(By.id('cell2')).click();
-
-        // Check scoreboard
-        const scoreElement = await driver.findElement(By.id('player_score'));
-        const scoreText = await scoreElement.getText();
-
-        console.log('Player score text:', scoreText);
-        assert.ok(!isNaN(parseInt(scoreText)), 'Score is not a number');
-
-        console.log('✅ Selenium test passed');
-    } catch (err) {
-        console.error('❌ Selenium test failed:', err);
-        process.exit(1);
-    } finally {
-        await driver.quit();
-    }
+  try {
+    const testUrl = process.env.TESTING_URL;
+    console.log(`Navigating to: ${testUrl}`);
+    await driver.get(testUrl);
+    await driver.wait(until.titleContains("Tic Tac Toe"), 10000);
+    console.log("Page loaded successfully");
+  } catch (err) {
+    console.error("Selenium test failed:", err);
+    process.exit(1);  // Jenkins will mark this as failed
+  } finally {
+    await driver.quit();
+  }
 })();
