@@ -4,29 +4,34 @@ const chrome = require('selenium-webdriver/chrome');
 (async function runTest() {
   let options = new chrome.Options();
 
-    options.addArguments(
-      '--headless=new',
-      '--no-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-software-rasterizer'
+  options.addArguments(
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu'
   );
 
-  let driver = await new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(options)
-    .build();
+  const testUrl = process.env.TESTING_URL;
 
+  let driver;
   try {
-    const testUrl = process.env.TESTING_URL;
+    driver = await new Builder()
+      .forBrowser('chrome')
+      .setChromeOptions(options)
+      .build();
+
     console.log(`Navigating to: ${testUrl}`);
     await driver.get(testUrl);
+
     await driver.wait(until.titleContains("Tic Tac Toe"), 10000);
     console.log("Page loaded successfully");
+
   } catch (err) {
     console.error("Selenium test failed:", err);
-    process.exit(1);  // Jenkins will mark this as failed
+    process.exit(1);
   } finally {
-    await driver.quit();
+    if (driver) {
+      await driver.quit();
+    }
   }
 })();
