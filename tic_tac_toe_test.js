@@ -5,14 +5,21 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-// Create a unique temporary directory for Chrome profile
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-profile-'));
+// Create a unique temporary directory for Chrome user data
+const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'selenium-profile-'));
 
 let options = new chrome.Options();
-options.addArguments('--headless=new'); // Use 'new' mode for compatibility
+options.addArguments('--headless=new');
 options.addArguments('--no-sandbox');
 options.addArguments('--disable-dev-shm-usage');
-options.addArguments(`--user-data-dir=${tmpDir}`); // Prevent session collision
+options.addArguments('--disable-gpu');
+options.addArguments('--disable-extensions');
+options.addArguments('--disable-background-networking');
+options.addArguments('--disable-default-apps');
+options.addArguments('--disable-sync');
+options.addArguments('--metrics-recording-only');
+options.addArguments('--remote-debugging-port=9222');
+options.addArguments(`--user-data-dir=${userDataDir}`);
 
 let driver = new Builder()
     .forBrowser('chrome')
@@ -22,28 +29,23 @@ let driver = new Builder()
 (async function testTicTacToe() {
     try {
         const testingUrl = process.env.TESTING_URL || 'http://localhost';
-
         console.log('Navigating to:', testingUrl);
         await driver.get(testingUrl);
 
-        // Wait for the game board to load
+        // Wait for game board to appear
         await driver.wait(until.elementLocated(By.id('cell0')), 10000);
 
-        // Click on a few cells
+        // Play simple sequence
         await driver.findElement(By.id('cell0')).click();
-        await driver.sleep(500);
-        await driver.findElement(By.id('cell1')).click();  // Likely ignored since computer moves
         await driver.sleep(500);
         await driver.findElement(By.id('cell2')).click();
 
-        // Check the score element exists
+        // Check scoreboard
         const scoreElement = await driver.findElement(By.id('player_score'));
         const scoreText = await scoreElement.getText();
 
         console.log('Player score text:', scoreText);
-
-        // Simple assertion: the score box should exist and contain a number
-        assert.ok(!isNaN(parseInt(scoreText)), 'Score text is not a number');
+        assert.ok(!isNaN(parseInt(scoreText)), 'Score is not a number');
 
         console.log('✅ Selenium test passed');
     } catch (err) {
