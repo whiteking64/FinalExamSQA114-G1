@@ -16,6 +16,34 @@ pipeline {
       }
     }
 
+    stage('Setup Agent Environment') {
+      steps {
+        sh '''
+        echo "--- Ensuring Google Chrome is installed on agent ---"
+        if ! google-chrome --version > /dev/null 2>&1; then
+          echo "Google Chrome not found, attempting installation..."
+          # Add Google Chrome repo
+          sudo tee /etc/yum.repos.d/google-chrome.repo <<EOF
+[google-chrome]
+name=google-chrome
+baseurl=http://dl.google.com/linux/chrome/rpm/stable/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+EOF
+          # Install Google Chrome
+          echo "Installing Google Chrome..."
+          sudo yum install -y google-chrome-stable
+        else
+          echo "Google Chrome is already installed."
+        fi
+        echo "Verifying Chrome installation:"
+        google-chrome --version || echo "Failed to verify Chrome version after setup attempt."
+        echo "---------------------------------------------------"
+        '''
+      }
+    }
+
     stage('Deploy to Testing') {
       steps {
         sh '''
@@ -29,9 +57,6 @@ pipeline {
     stage('Run Selenium Test') {
       steps {
         sh '''
-        echo "--- Checking Google Chrome version ---"
-        google-chrome --version || chromium-browser --version || chrome --version || echo "Google Chrome not found or command failed"
-        echo "------------------------------------"
         export TESTING_URL=http://$TESTING_IP
         npm install selenium-webdriver
         node tic_tac_toe_test.js
