@@ -38,11 +38,25 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
     console.log("Play button located and interactable. Clicking Play button...");
     await playButton.click();
     console.log("Play button clicked. Waiting for options modal to disappear...");
-    await driver.wait(until.stalenessOf(driver.findElement(By.id('optionsDlg'))), 10000); // Wait for modal to be gone
+    await driver.wait(until.elementIsNotVisible(driver.findElement(By.id('optionsDlg'))), 10000);
+    console.log("Options modal is no longer visible.");
 
     console.log("Waiting for table_game element...");
-    await driver.wait(until.elementLocated(By.id('table_game')), 15000); // Increased timeout
-    console.log("✅ Selenium test passed: Tic Tac Toe loaded and options modal handled.");
+    const gameTable = await driver.wait(until.elementLocated(By.id('table_game')), 15000);
+    await driver.wait(until.elementIsVisible(gameTable), 10000);
+    console.log("table_game element is visible.");
+
+    // Click the top-left cell (cell0)
+    console.log("Locating and clicking cell0...");
+    const cell0 = await driver.findElement(By.id('cell0'));
+    await cell0.click();
+    console.log("cell0 clicked.");
+
+    // Wait for cell0 to contain an 'x' mark
+    console.log("Waiting for 'x' mark in cell0...");
+    const xMark = await driver.wait(until.elementLocated(By.xpath("//div[@id='cell0']/span[@class='x']")), 5000);
+    await driver.wait(until.elementIsVisible(xMark), 5000);
+    console.log("✅ Selenium test passed: Tic Tac Toe loaded, options handled, cell0 clicked, and 'x' mark verified.");
     process.exitCode = 0;
   } catch (err) {
     console.error("❌ Selenium test failed:", err);
