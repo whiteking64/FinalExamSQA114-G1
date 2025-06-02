@@ -41,7 +41,7 @@ resource "aws_instance" "jenkins_permanent_agent" {
   user_data = <<-EOF
               #!/bin/bash
               yum update -y
-              yum install -y java-21-amazon-corretto
+              yum install -y java-21-amazon-corretto git nodejs npm wget
               fallocate -l 1G /swapfile
               chmod 600 /swapfile
               mkswap /swapfile && swapon /swapfile
@@ -64,7 +64,7 @@ resource "aws_instance" "jenkins_dynamic_agent" {
   user_data = <<-EOF
               #!/bin/bash
               yum update -y
-              yum install -y java-21-amazon-corretto
+              yum install -y java-21-amazon-corretto git nodejs npm wget
               fallocate -l 1G /swapfile
               chmod 600 /swapfile
               mkswap /swapfile && swapon /swapfile
