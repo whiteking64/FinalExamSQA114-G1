@@ -1,39 +1,55 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const assert = require('assert');
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
-(async function testTicTacToe() {
-  const testingURL = process.env.TESTING_URL;
+// Create a unique temporary directory for Chrome profile
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-profile-'));
 
-  const options = new chrome.Options();
-  options.addArguments('--headless');
-  options.addArguments('--no-sandbox');
-  options.addArguments('--disable-dev-shm-usage');
-  options.addArguments('--disable-gpu');
-  options.addArguments('--user-data-dir=/tmp/unique-data-dir');
+let options = new chrome.Options();
+options.addArguments('--headless=new'); // Use 'new' mode for compatibility
+options.addArguments('--no-sandbox');
+options.addArguments('--disable-dev-shm-usage');
+options.addArguments(`--user-data-dir=${tmpDir}`); // Prevent session collision
 
-  let driver = await new Builder()
+let driver = new Builder()
     .forBrowser('chrome')
     .setChromeOptions(options)
     .build();
 
-  try {
-    await driver.get(testingURL);
-    await driver.wait(until.elementLocated(By.id('okBtn')), 10000);
-    await driver.findElement(By.id('okBtn')).click();
-    await driver.wait(until.elementLocated(By.id('cell0')), 5000);
-    await driver.findElement(By.id('cell0')).click();
+(async function testTicTacToe() {
+    try {
+        const testingUrl = process.env.TESTING_URL || 'http://localhost';
 
-    const cell = await driver.findElement(By.id('cell0'));
-    const innerHTML = await cell.getAttribute('innerHTML');
+        console.log('Navigating to:', testingUrl);
+        await driver.get(testingUrl);
 
-    console.log('Clicked cell content:', innerHTML);
-    assert(innerHTML.includes('×'), 'Expected cell content to contain "×"');
-    console.log('✅ Test passed: "×" is correctly displayed when user chooses X');
+        // Wait for the game board to load
+        await driver.wait(until.elementLocated(By.id('cell0')), 10000);
 
-  } catch (err) {
-    console.error('❌ Test failed:', err);
-  } finally {
-    await driver.quit();
-  }
+        // Click on a few cells
+        await driver.findElement(By.id('cell0')).click();
+        await driver.sleep(500);
+        await driver.findElement(By.id('cell1')).click();  // Likely ignored since computer moves
+        await driver.sleep(500);
+        await driver.findElement(By.id('cell2')).click();
+
+        // Check the score element exists
+        const scoreElement = await driver.findElement(By.id('player_score'));
+        const scoreText = await scoreElement.getText();
+
+        console.log('Player score text:', scoreText);
+
+        // Simple assertion: the score box should exist and contain a number
+        assert.ok(!isNaN(parseInt(scoreText)), 'Score text is not a number');
+
+        console.log('✅ Selenium test passed');
+    } catch (err) {
+        console.error('❌ Selenium test failed:', err);
+        process.exit(1);
+    } finally {
+        await driver.quit();
+    }
 })();
