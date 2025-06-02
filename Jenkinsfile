@@ -3,10 +3,10 @@ pipeline {
 
   environment {
     SSH_KEY = credentials('ssh-prod-key')
-    TESTING_IP = 'REPLACE_WITH_TESTING_IP'
-    STAGING_IP = 'REPLACE_WITH_STAGING_IP'
-    PROD1_IP = 'REPLACE_WITH_PROD1_IP'
-    PROD2_IP = 'REPLACE_WITH_PROD2_IP'
+    TESTING_IP = '100.26.186.215'
+    STAGING_IP = '44.203.36.45'
+    PROD1_IP   = '18.212.192.140'
+    PROD2_IP   = '54.167.88.246'
   }
 
   stages {
