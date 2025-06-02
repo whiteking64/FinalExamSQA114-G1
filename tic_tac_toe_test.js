@@ -5,27 +5,26 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-// Create a unique temporary directory for Chrome user data
-const userDataDir = path.join(os.tmpdir(), 'selenium-profile-' + Date.now());
+// Unique tmp dir
+const userDataDir = path.join(os.tmpdir(), `selenium-${Date.now()}`);
 fs.mkdirSync(userDataDir, { recursive: true });
 
-let options = new chrome.Options();
-options.addArguments('--headless=new');
-options.addArguments('--no-sandbox');
-options.addArguments('--disable-dev-shm-usage');
-options.addArguments('--disable-gpu');
-options.addArguments('--disable-extensions');
-options.addArguments('--disable-background-networking');
-options.addArguments('--disable-default-apps');
-options.addArguments('--disable-sync');
-options.addArguments('--metrics-recording-only');
-options.addArguments('--remote-debugging-port=9222');
-options.addArguments(`--user-data-dir=${userDataDir}`);
+// Headless, safe flags
+const options = new chrome.Options()
+  .addArguments('--headless=new')  // modern headless mode
+  .addArguments('--no-sandbox')
+  .addArguments('--disable-dev-shm-usage')
+  .addArguments('--disable-gpu')
+  .addArguments('--disable-extensions')
+  .addArguments('--disable-software-rasterizer')
+  .addArguments('--remote-debugging-port=0')
+  .addArguments(`--user-data-dir=${userDataDir}`);
 
-let driver = new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(options)
-    .build();
+// Final browser setup
+const driver = new Builder()
+  .forBrowser('chrome')
+  .setChromeOptions(options)
+  .build();
 
 (async function testTicTacToe() {
     try {
