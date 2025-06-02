@@ -5,22 +5,15 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-// Unique tmp dir
-const userDataDir = path.join(os.tmpdir(), `selenium-${Date.now()}`);
-fs.mkdirSync(userDataDir, { recursive: true });
-
-// Headless, safe flags
+// Minimal working options for CI/EC2
 const options = new chrome.Options()
-  .addArguments('--headless=new')  // modern headless mode
+  .addArguments('--headless=new')
   .addArguments('--no-sandbox')
   .addArguments('--disable-dev-shm-usage')
   .addArguments('--disable-gpu')
-  .addArguments('--disable-extensions')
-  .addArguments('--disable-software-rasterizer')
-  .addArguments('--remote-debugging-port=0')
-  .addArguments(`--user-data-dir=${userDataDir}`);
+  .addArguments('--disable-software-rasterizer');
 
-// Final browser setup
+// Create WebDriver with safe options
 const driver = new Builder()
   .forBrowser('chrome')
   .setChromeOptions(options)
