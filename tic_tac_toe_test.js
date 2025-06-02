@@ -1,5 +1,8 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
 
 const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
 
@@ -13,7 +16,13 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
   options.addArguments('--disable-gpu');
 
   let driver;
+  let userDataDir = null;
+
   try {
+    userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-profile-'));
+    console.log(`Using unique user data directory: ${userDataDir}`);
+    options.addArguments(`--user-data-dir=${userDataDir}`);
+
     driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
     await driver.get(TESTING_URL);
     await driver.wait(until.elementLocated(By.id('table_game')), 5000);
@@ -24,7 +33,20 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
     process.exitCode = 1;
   } finally {
     if (driver) {
-      await driver.quit();
+      try {
+        await driver.quit();
+        console.log('Browser session closed.');
+      } catch (quitErr) {
+        console.error('Error quitting driver:', quitErr);
+      }
+    }
+    if (userDataDir) {
+      try {
+        fs.rmSync(userDataDir, { recursive: true, force: true });
+        console.log(`Cleaned up user data directory: ${userDataDir}`);
+      } catch (cleanupErr) {
+        console.error(`Error cleaning up user data directory ${userDataDir}:`, cleanupErr);
+      }
     }
   }
 })();
