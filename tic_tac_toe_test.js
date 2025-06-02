@@ -1,11 +1,6 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const os = require('os');
-const fs = require('fs');
-const path = require('path');
 
-// Create a truly unique user-data-dir each time
-const uniqueDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-profile-'));
 const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
 
 (async function testTicTacToe() {
@@ -15,7 +10,6 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
   options.addArguments('--headless=new'); // Use modern headless mode
   options.addArguments('--no-sandbox');
   options.addArguments('--disable-dev-shm-usage');
-  options.addArguments(`--user-data-dir=${uniqueDir}`);
 
   let driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
 
