@@ -12,6 +12,7 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
   let options = new chrome.Options();
   options.addArguments('--headless=new');
   options.addArguments('--no-sandbox');
+  options.addArguments('--disable-setuid-sandbox');
   options.addArguments('--disable-dev-shm-usage');
   options.addArguments('--disable-gpu');
 

@@ -29,6 +29,9 @@ pipeline {
     stage('Run Selenium Test') {
       steps {
         sh '''
+        echo "--- Checking Google Chrome version ---"
+        google-chrome --version || chromium-browser --version || chrome --version || echo "Google Chrome not found or command failed"
+        echo "------------------------------------"
         export TESTING_URL=http://$TESTING_IP
         npm install selenium-webdriver
         node tic_tac_toe_test.js
