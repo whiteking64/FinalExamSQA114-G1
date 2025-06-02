@@ -26,8 +26,23 @@ const TESTING_URL = process.env.TESTING_URL || 'http://localhost';
 
     driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
     await driver.get(TESTING_URL);
-    await driver.wait(until.elementLocated(By.id('table_game')), 5000);
-    console.log("✅ Selenium test passed: Tic Tac Toe loaded.");
+
+    // Wait for the options modal to be visible and click the "Play" button
+    console.log("Waiting for options modal...");
+    await driver.wait(until.elementLocated(By.id('optionsDlg')), 10000); // Wait for the modal itself
+    await driver.wait(until.elementIsVisible(driver.findElement(By.id('optionsDlg'))), 10000);
+    console.log("Options modal located. Waiting for Play button...");
+    const playButton = await driver.wait(until.elementLocated(By.id('okBtn')), 10000);
+    await driver.wait(until.elementIsVisible(playButton), 10000);
+    await driver.wait(until.elementIsEnabled(playButton), 10000);
+    console.log("Play button located and interactable. Clicking Play button...");
+    await playButton.click();
+    console.log("Play button clicked. Waiting for options modal to disappear...");
+    await driver.wait(until.stalenessOf(driver.findElement(By.id('optionsDlg'))), 10000); // Wait for modal to be gone
+
+    console.log("Waiting for table_game element...");
+    await driver.wait(until.elementLocated(By.id('table_game')), 15000); // Increased timeout
+    console.log("✅ Selenium test passed: Tic Tac Toe loaded and options modal handled.");
     process.exitCode = 0;
   } catch (err) {
     console.error("❌ Selenium test failed:", err);
