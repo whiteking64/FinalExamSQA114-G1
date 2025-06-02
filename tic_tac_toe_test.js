@@ -6,7 +6,8 @@ const os = require('os');
 const fs = require('fs');
 
 // Create a unique temporary directory for Chrome user data
-const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'selenium-profile-'));
+const userDataDir = path.join(os.tmpdir(), 'selenium-profile-' + Date.now());
+fs.mkdirSync(userDataDir, { recursive: true });
 
 let options = new chrome.Options();
 options.addArguments('--headless=new');
